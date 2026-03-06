@@ -592,7 +592,7 @@
           console.log("isOpen:", isOpen);
           console.log("available:", available);
 
-          if (!available) {
+          if (!available || !isOpen) {
             closedMessage.style.display = "block";
             submit.style.display = "none";
           } else {
@@ -666,3 +666,4 @@
           update();
         };
       })();
+
