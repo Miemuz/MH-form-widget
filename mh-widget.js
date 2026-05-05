@@ -54,7 +54,7 @@
         bindEvents(elements, closeBtn, wrapper);
         attachConversationEndedListener();
         updateSubmitState(elements);
-        prewarmZisson();
+        //prewarmZisson();
 
         function injectStyles() {
           const style = document.createElement("style");
