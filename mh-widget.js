@@ -1,10 +1,17 @@
-      /**
-       * @author Mie Rønningen
-       * @version 1.0
-       * @description HC-CHAT
-       * Widget for Hjelpechat - Zisson
-       */
-     (() => {
+/**
+ * @author Mie Rønningen
+ * @version 1.0
+ * @description HC-CHAT
+ * Widget for Hjelpechat - Zisson
+ */
+/**
+ * @author Mie Rønningen
+ * @version 1.0
+ * @description HC-CHAT
+ * Widget for Hjelpechat - Zisson
+ */
+
+(() => {
   const CONFIG = {
     zissonScriptSrc: "https://chat2.zisson.com/bootstrapper.js",
     zissonJwt:
@@ -1114,33 +1121,36 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
   try {
     const api = await ensureZissonLoaded();
 
+    document.body.classList.add("mh-hide-zisson");
+
     api.reload?.();
 
     await waitForApiSnapshot();
     await delay(CONFIG.startReloadDelayMs);
 
-
+    // Zisson krever at widgeten åpnes først, men vi holder den skjult
+    api.openWidget?.();
 
     await waitForWidgetMount();
 
+    // Send inn kjønn, alder og fylke før samtalen startes
     api.setDefaults?.(inputDefaults);
 
-    await delay(200);
+    await delay(300);
 
     state.conversationEndedByUser = false;
 
-    const conversationStartedPromise = waitForConversationStart(7000);
+    const started = await startConversationWithRetry(api, 10, 700);
 
-    api.startConversation?.();
-    api.openWidget?.();
+    state.hasActiveConversation = true;
+
+    // Vis Zisson først etter at vi har prøvd å starte samtalen
     document.body.classList.remove("mh-hide-zisson");
 
-    try {
-      await conversationStartedPromise;
-      state.hasActiveConversation = true;
-    } catch (error) {
-      console.warn("Automatisk start av samtale feilet:", error);
-      state.hasActiveConversation = false;
+    if (!started) {
+      console.warn(
+        "Automatisk start feilet. Brukeren må eventuelt trykke Start manuelt.",
+      );
     }
 
     closeBtn.style.display = "block";
@@ -1153,6 +1163,40 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     updateSubmitState(elements);
   }
 }
+async function startConversationWithRetry(api, attempts = 10, delayMs = 700) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    const startedPromise = waitForConversationStart(delayMs);
+
+    api.startConversation?.();
+
+    try {
+      await startedPromise;
+      return true;
+    } catch (error) {
+      await delay(delayMs);
+    }
+  }
+
+  return false;
+}
+function waitForConversationStart(timeoutMs = 5000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      window.removeEventListener("zConversationStarted", onStarted);
+      reject(new Error("Samtalen startet ikke i tide"));
+    }, timeoutMs);
+
+    function onStarted() {
+      clearTimeout(timer);
+      window.removeEventListener("zConversationStarted", onStarted);
+      resolve(true);
+    }
+
+    window.addEventListener("zConversationStarted", onStarted);
+  });
+}
+
+
   async function waitForApiSnapshot() {
     const startedAt = Date.now();
 
@@ -1172,6 +1216,7 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
 
     throw new Error("Zisson API ble ikke klar etter reload");
   }
+  
 
   async function waitForWidgetMount() {
     const startedAt = Date.now();
