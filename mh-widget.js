@@ -1146,8 +1146,6 @@
             await delay(1000);
 
             api.startConversation?.();
-
-            api.startConversation?.();
             state.hasActiveConversation = true;
             closeBtn.style.display = "block";
             placeCloseButton();
