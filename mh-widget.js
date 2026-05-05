@@ -1115,24 +1115,29 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     await waitForApiSnapshot();
     await delay(CONFIG.startReloadDelayMs);
 
+    // Zisson krever at widgeten åpnes først, men vi holder den skjult
     api.openWidget?.();
 
     await waitForWidgetMount();
 
+    // Send inn kjønn, alder og fylke før samtalen startes
+    api.setDefaults?.(inputDefaults);
+
+    await delay(300);
+
     state.conversationEndedByUser = false;
 
-    const started = await startConversationWithRetry(
-      api,
-      inputDefaults,
-      10,
-      700,
-    );
+    const started = await startConversationWithRetry(api, 10, 700);
 
     state.hasActiveConversation = true;
+
+    // Vis Zisson først etter at vi har prøvd å starte samtalen
     document.body.classList.remove("mh-hide-zisson");
 
     if (!started) {
-      console.warn("Automatisk start feilet. Brukeren må eventuelt trykke Start manuelt.");
+      console.warn(
+        "Automatisk start feilet. Brukeren må eventuelt trykke Start manuelt.",
+      );
     }
 
     closeBtn.style.display = "block";
@@ -1145,12 +1150,8 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     updateSubmitState(elements);
   }
 }
-async function startConversationWithRetry(api, inputDefaults, attempts = 10, delayMs = 700) {
+async function startConversationWithRetry(api, attempts = 10, delayMs = 700) {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
-    api.setDefaults?.(inputDefaults);
-
-    await delay(300);
-
     const startedPromise = waitForConversationStart(delayMs);
 
     api.startConversation?.();
@@ -1181,7 +1182,6 @@ function waitForConversationStart(timeoutMs = 5000) {
     window.addEventListener("zConversationStarted", onStarted);
   });
 }
-
 
   async function waitForApiSnapshot() {
     const startedAt = Date.now();
