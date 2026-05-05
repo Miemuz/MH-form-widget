@@ -4,61 +4,59 @@
        * @description HC-CHAT
        * Widget for Hjelpechat - Zisson
        */
-      (() => {
-        const CONFIG = {
-          zissonScriptSrc: "https://chat2.zisson.com/bootstrapper.js",
-          zissonJwt:
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcklkIjoiNzM2IiwiY3VzdG9tZXJHdWlkIjoiYWE3NWE3N2ItODgyNi00YjBhLWE3N2YtM2JiNTBiYTQxZTkxIiwiZW50cnlQb2ludEd1aWQiOiJiYjE2OTk3MS1lNmNiLTQzNDAtYmY5YS03M2VlYzgwN2YzNjAiLCJuYmYiOjE3NjM0NTIzODUsImV4cCI6MTkyMTIxODc4NSwiaWF0IjoxNzYzNDUyMzg1LCJpc3MiOiJ6aXNzb24iLCJhdWQiOiJ3YXZlQ2hhdCJ9.tzOYuMcrK25rEAovnNYsK6kLLUh_Gai6qDvw9dCBfjs",
-          readyTimeoutMs: 10000,
-          readyPollMs: 150,
-          availabilityRetries: 8,
-          availabilityRetryDelayMs: 350,
-          startReloadDelayMs: 700,
-          startConversationDelayMs: 500,
-        };
+     (() => {
+  const CONFIG = {
+    zissonScriptSrc: "https://chat2.zisson.com/bootstrapper.js",
+    zissonJwt:
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcklkIjoiNzM2IiwiY3VzdG9tZXJHdWlkIjoiYWE3NWE3N2ItODgyNi00YjBhLWE3N2YtM2JiNTBiYTQxZTkxIiwiZW50cnlQb2ludEd1aWQiOiJiYjE2OTk3MS1lNmNiLTQzNDAtYmY5YS03M2VlYzgwN2YzNjAiLCJuYmYiOjE3NjM0NTIzODUsImV4cCI6MTkyMTIxODc4NSwiaWF0IjoxNzYzNDUyMzg1LCJpc3MiOiJ6aXNzb24iLCJhdWQiOiJ3YXZlQ2hhdCJ9.tzOYuMcrK25rEAovnNYsK6kLLUh_Gai6qDvw9dCBfjs",
+    readyTimeoutMs: 10000,
+    readyPollMs: 150,
+    availabilityRetries: 8,
+    availabilityRetryDelayMs: 350,
+    startReloadDelayMs: 700,
+    startConversationDelayMs: 1500,
+  };
 
-        const state = {
-          zissonReadyPromise: null,
-          externalChatLoaded: false,
-          chatAvailable: false,
-          isStartingChat: false,
-          hasActiveConversation: false,
-          conversationEndedByUser: false,
-          conversationEndListenerAttached: false,
-          isPanelOpen: false,
-        };
+  const state = {
+    zissonReadyPromise: null,
+    externalChatLoaded: false,
+    chatAvailable: false,
+    isStartingChat: false,
+    hasActiveConversation: false,
+    conversationEndedByUser: false,
+    conversationEndListenerAttached: false,
+    isPanelOpen: false,
+  };
 
-        injectStyles();
+  injectStyles();
 
-        const closeBtn = createCloseButton();
-        const wrapper = createWidget();
-        document.body.appendChild(closeBtn);
-        document.body.appendChild(wrapper);
+  const closeBtn = createCloseButton();
+  const wrapper = createWidget();
+  document.body.appendChild(closeBtn);
+  document.body.appendChild(wrapper);
 
-        const elements = {
-          button: wrapper.querySelector(".mh-chat-fab"),
-          panel: wrapper.querySelector(".mh-chat-panel"),
-          submit: wrapper.querySelector(".mh-submit"),
-          county: wrapper.querySelector("#mh-county"),
-          gender: wrapper.querySelector("#mh-gender"),
-          age: wrapper.querySelector("#mh-age"),
-          gdpr: wrapper.querySelector("#mh-gdpr"),
-          openView: wrapper.querySelector(".mh-open-view"),
-          closedView: wrapper.querySelector(".mh-closed-view"),
-        };
-        const privacyBtn = wrapper.querySelector(
-          '[data-action="toggle-privacy"]',
-        );
-        const privacyPanel = wrapper.querySelector("#mhPrivacyPanel");
+  const elements = {
+    button: wrapper.querySelector(".mh-chat-fab"),
+    panel: wrapper.querySelector(".mh-chat-panel"),
+    submit: wrapper.querySelector(".mh-submit"),
+    county: wrapper.querySelector("#mh-county"),
+    gender: wrapper.querySelector("#mh-gender"),
+    age: wrapper.querySelector("#mh-age"),
+    gdpr: wrapper.querySelector("#mh-gdpr"),
+    openView: wrapper.querySelector(".mh-open-view"),
+    closedView: wrapper.querySelector(".mh-closed-view"),
+  };
+  const privacyBtn = wrapper.querySelector('[data-action="toggle-privacy"]');
+  const privacyPanel = wrapper.querySelector("#mhPrivacyPanel");
 
-        bindEvents(elements, closeBtn, wrapper);
-        attachConversationEndedListener();
-        updateSubmitState(elements);
-        //prewarmZisson();
+  bindEvents(elements, closeBtn, wrapper);
+  attachConversationEndedListener();
+  updateSubmitState(elements);
+  //prewarmZisson();
 
-        function injectStyles() {
-          const style = document.createElement("style");
-          style.textContent = `
+  function injectStyles() {
+    const style = document.createElement("style");
+    style.textContent = `
             :root{
               --mh-primary: #205f79;
               --mh-secondary: #EAECE6;
@@ -599,16 +597,16 @@
             }
           `;
 
-          document.head.appendChild(style);
-        }
+    document.head.appendChild(style);
+  }
 
-        function createCloseButton() {
-          const button = document.createElement("button");
-          button.className = "mh-chat-close";
-          button.id = "mh-chat-close";
-          button.type = "button";
-          button.setAttribute("aria-label", "Lukk chat");
-          button.innerHTML = `
+  function createCloseButton() {
+    const button = document.createElement("button");
+    button.className = "mh-chat-close";
+    button.id = "mh-chat-close";
+    button.type = "button";
+    button.setAttribute("aria-label", "Lukk chat");
+    button.innerHTML = `
             <svg viewBox="0 0 24 24" aria-hidden="true" class="mh-close-icon">
               <path
                 d="M6 6L18 18M18 6L6 18"
@@ -619,12 +617,12 @@
               />
             </svg>
           `;
-          return button;
-        }
+    return button;
+  }
 
-        function createWidget() {
-          const wrapper = document.createElement("div");
-          wrapper.innerHTML = `
+  function createWidget() {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `
             <button class="mh-chat-fab" aria-label="Åpne chat" type="button">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 5H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/>
@@ -844,430 +842,443 @@
             </form>
           `;
 
-          return wrapper;
-        }
-        const hint = wrapper.querySelector(".mh-chat-hint");
-        setTimeout(() => {
-          hint.classList.add("visible");
+    return wrapper;
+  }
+  const hint = wrapper.querySelector(".mh-chat-hint");
+  setTimeout(() => {
+    hint.classList.add("visible");
 
-          setTimeout(() => {
-            hint.classList.remove("visible");
-          }, 5000); // vis i 5 sek
-        }, 2500);
+    setTimeout(() => {
+      hint.classList.remove("visible");
+    }, 5000); // vis i 5 sek
+  }, 2500);
 
-        function bindEvents(elements, closeBtn, wrapper) {
-          elements.button.addEventListener("click", async () => {
-            hint.classList.remove("visible");
+  function bindEvents(elements, closeBtn, wrapper) {
+    elements.button.addEventListener("click", async () => {
+      hint.classList.remove("visible");
 
-            if (state.isPanelOpen) {
-              closePreChatPanel(elements);
-              return;
-            }
+      if (state.isPanelOpen) {
+        closePreChatPanel(elements);
+        return;
+      }
 
-            openLoadingState(elements);
-            await syncAvailabilityUI(elements);
-            openPreChatPanel(elements);
-          });
+      openLoadingState(elements);
+      await syncAvailabilityUI(elements);
+      openPreChatPanel(elements);
+    });
 
-          elements.panel.addEventListener("submit", async (event) => {
-            event.preventDefault();
+    elements.panel.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-            if (!isValid(elements)) return;
-            if (!state.chatAvailable) return;
-            if (state.isStartingChat) return;
+      if (!isValid(elements)) return;
+      if (!state.chatAvailable) return;
+      if (state.isStartingChat) return;
 
-            try {
-              await startExternalChat(elements, closeBtn, {
-                fylke: elements.county.value,
-                alder: elements.age.value,
-                kjonn: elements.gender.value,
-              });
+      try {
+        await startExternalChat(elements, closeBtn, {
+          fylke: elements.county.value,
+          alder: elements.age.value,
+          kjonn: elements.gender.value,
+        });
 
-              elements.panel.style.display = "none";
-              state.isPanelOpen = false;
-              wrapper.style.display = "none";
-              elements.panel.reset();
-            } catch (error) {
-              console.error("Feil ved start av chat:", error);
-              state.isStartingChat = false;
-              updateSubmitState(elements);
-            }
-          });
+        elements.panel.style.display = "none";
+        state.isPanelOpen = false;
+        wrapper.style.display = "none";
+        elements.panel.reset();
+      } catch (error) {
+        console.error("Feil ved start av chat:", error);
+        state.isStartingChat = false;
+        updateSubmitState(elements);
+      }
+    });
 
-          [elements.county, elements.gender, elements.age].forEach(
-            (element) => {
-              element.addEventListener("change", () =>
-                updateSubmitState(elements),
-              );
-            },
-          );
+    [elements.county, elements.gender, elements.age].forEach((element) => {
+      element.addEventListener("change", () => updateSubmitState(elements));
+    });
 
-          elements.gdpr.addEventListener("change", () =>
-            updateSubmitState(elements),
-          );
+    elements.gdpr.addEventListener("change", () => updateSubmitState(elements));
 
-          closeBtn.addEventListener("click", () => {
-            const api = window.zissonWebChat;
+    closeBtn.addEventListener("click", () => {
+      const api = window.zissonWebChat;
 
-            if (!api) {
-              restorePreChatUI(elements, closeBtn, wrapper);
-              return;
-            }
+      if (!api) {
+        restorePreChatUI(elements, closeBtn, wrapper);
+        return;
+      }
 
-            try {
-              if (
-                !state.conversationEndedByUser &&
-                state.hasActiveConversation
-              ) {
-                api.endConversation?.();
-                state.conversationEndedByUser = true;
-                state.hasActiveConversation = false;
-                return;
-              }
-
-              api.hideWidget?.();
-              restorePreChatUI(elements, closeBtn, wrapper);
-            } catch (error) {
-              console.error("Feil ved klikk på lukkeknapp:", error);
-            }
-          });
-
-          window.addEventListener("resize", placeCloseButton);
-          window.addEventListener("scroll", placeCloseButton, {
-            passive: true,
-          });
-        }
-
-        function isValid(elements) {
-          return Boolean(
-            elements.county.value &&
-            elements.gender.value &&
-            elements.age.value &&
-            elements.gdpr.checked,
-          );
-        }
-
-        function updateSubmitState(elements) {
-          const enabled =
-            isValid(elements) && state.chatAvailable && !state.isStartingChat;
-          elements.submit.disabled = !enabled;
-          elements.submit.classList.toggle("active", enabled);
-        }
-
-        function setPanelMode(elements, isAvailable) {
-          elements.openView.style.display = isAvailable ? "block" : "none";
-          elements.closedView.style.display = isAvailable ? "none" : "block";
-          elements.panel.classList.toggle("closed", !isAvailable);
-        }
-
-        function openPreChatPanel(elements) {
-          elements.panel.style.display = "block";
-          state.isPanelOpen = true;
-        }
-
-        function closePreChatPanel(elements) {
-          elements.panel.style.display = "none";
-          elements.panel.reset();
-          state.isPanelOpen = false;
-          setPanelMode(elements, true);
-          updateSubmitState(elements);
-        }
-
-        function openLoadingState(elements) {
-          elements.submit.disabled = true;
-          elements.submit.classList.remove("active");
-        }
-
-        function restorePreChatUI(elements, closeBtn, wrapper) {
-          wrapper.style.display = "block";
-          elements.panel.style.display = "none";
-          closeBtn.style.display = "none";
-          elements.panel.reset();
-
-          state.chatAvailable = false;
-          state.isStartingChat = false;
+      try {
+        if (!state.conversationEndedByUser && state.hasActiveConversation) {
+          api.endConversation?.();
+          state.conversationEndedByUser = true;
           state.hasActiveConversation = false;
-          state.conversationEndedByUser = false;
-          state.isPanelOpen = false;
-
-          setPanelMode(elements, true);
-          updateSubmitState(elements);
+          return;
         }
 
-        function attachConversationEndedListener() {
-          if (state.conversationEndListenerAttached) return;
-          state.conversationEndListenerAttached = true;
+        api.hideWidget?.();
+        restorePreChatUI(elements, closeBtn, wrapper);
+      } catch (error) {
+        console.error("Feil ved klikk på lukkeknapp:", error);
+      }
+    });
 
-          window.addEventListener("zConversationEnded", (event) => {
-            //console.log("zConversationEnded", event);
-            state.hasActiveConversation = false;
-          });
+    window.addEventListener("resize", placeCloseButton);
+    window.addEventListener("scroll", placeCloseButton, {
+      passive: true,
+    });
+  }
+
+  function isValid(elements) {
+    return Boolean(
+      elements.county.value &&
+      elements.gender.value &&
+      elements.age.value &&
+      elements.gdpr.checked,
+    );
+  }
+
+  function updateSubmitState(elements) {
+    const enabled =
+      isValid(elements) && state.chatAvailable && !state.isStartingChat;
+    elements.submit.disabled = !enabled;
+    elements.submit.classList.toggle("active", enabled);
+  }
+
+  function setPanelMode(elements, isAvailable) {
+    elements.openView.style.display = isAvailable ? "block" : "none";
+    elements.closedView.style.display = isAvailable ? "none" : "block";
+    elements.panel.classList.toggle("closed", !isAvailable);
+  }
+
+  function openPreChatPanel(elements) {
+    elements.panel.style.display = "block";
+    state.isPanelOpen = true;
+  }
+
+  function closePreChatPanel(elements) {
+    elements.panel.style.display = "none";
+    elements.panel.reset();
+    state.isPanelOpen = false;
+    setPanelMode(elements, true);
+    updateSubmitState(elements);
+  }
+
+  function openLoadingState(elements) {
+    elements.submit.disabled = true;
+    elements.submit.classList.remove("active");
+  }
+
+  function restorePreChatUI(elements, closeBtn, wrapper) {
+    wrapper.style.display = "block";
+    elements.panel.style.display = "none";
+    closeBtn.style.display = "none";
+    elements.panel.reset();
+
+    state.chatAvailable = false;
+    state.isStartingChat = false;
+    state.hasActiveConversation = false;
+    state.conversationEndedByUser = false;
+    state.isPanelOpen = false;
+
+    setPanelMode(elements, true);
+    updateSubmitState(elements);
+  }
+
+  function attachConversationEndedListener() {
+    if (state.conversationEndListenerAttached) return;
+    state.conversationEndListenerAttached = true;
+
+    window.addEventListener("zConversationEnded", (event) => {
+      //console.log("zConversationEnded", event);
+      state.hasActiveConversation = false;
+    });
+  }
+
+
+  function ensureZissonLoaded() {
+    if (
+      window.zissonWebChat &&
+      typeof window.zissonWebChat.isOpen === "boolean" &&
+      typeof window.zissonWebChat.agentsAreAvailable === "boolean"
+    ) {
+      return Promise.resolve(window.zissonWebChat);
+    }
+
+    if (state.zissonReadyPromise) return state.zissonReadyPromise;
+
+    document.body.classList.add("mh-hide-zisson");
+
+    state.zissonReadyPromise = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error("Timeout: Zisson ble ikke klar i tide"));
+      }, CONFIG.readyTimeoutMs);
+
+      const waitForReadyState = () => {
+        const api = window.zissonWebChat;
+
+        if (
+          api &&
+          typeof api.isOpen === "boolean" &&
+          typeof api.agentsAreAvailable === "boolean"
+        ) {
+          clearTimeout(timeout);
+          resolve(api);
+          return;
         }
 
-        function ensureZissonLoaded() {
-          if (
-            window.zissonWebChat &&
-            typeof window.zissonWebChat.isOpen === "boolean" &&
-            typeof window.zissonWebChat.agentsAreAvailable === "boolean"
-          ) {
-            return Promise.resolve(window.zissonWebChat);
-          }
+        setTimeout(waitForReadyState, CONFIG.readyPollMs);
+      };
 
-          if (state.zissonReadyPromise) return state.zissonReadyPromise;
+      window.addEventListener(
+        "zissonWebChat",
+        () => {
+          waitForReadyState();
+        },
+        { once: true },
+      );
 
-          document.body.classList.add("mh-hide-zisson");
+      if (!state.externalChatLoaded) {
+        state.externalChatLoaded = true;
 
-          state.zissonReadyPromise = new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => {
-              reject(new Error("Timeout: Zisson ble ikke klar i tide"));
-            }, CONFIG.readyTimeoutMs);
+        const script = document.createElement("script");
+        script.src = CONFIG.zissonScriptSrc;
+        script.type = "text/javascript";
+        script.setAttribute("data-jwt", CONFIG.zissonJwt);
+        script.async = true;
 
-            const waitForReadyState = () => {
-              const api = window.zissonWebChat;
+        script.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error("Kunne ikke laste Zisson"));
+        };
 
-              if (
-                api &&
-                typeof api.isOpen === "boolean" &&
-                typeof api.agentsAreAvailable === "boolean"
-              ) {
-                clearTimeout(timeout);
-                resolve(api);
-                return;
-              }
+        document.body.appendChild(script);
+      } else {
+        waitForReadyState();
+      }
+    });
 
-              setTimeout(waitForReadyState, CONFIG.readyPollMs);
-            };
+    return state.zissonReadyPromise;
+  }
 
-            window.addEventListener(
-              "zissonWebChat",
-              () => {
-                waitForReadyState();
-              },
-              { once: true },
-            );
+  async function getAvailabilitySnapshot() {
+    await ensureZissonLoaded();
 
-            if (!state.externalChatLoaded) {
-              state.externalChatLoaded = true;
+    let lastSnapshot = {
+      open: false,
+      available: false,
+    };
 
-              const script = document.createElement("script");
-              script.src = CONFIG.zissonScriptSrc;
-              script.type = "text/javascript";
-              script.setAttribute("data-jwt", CONFIG.zissonJwt);
-              script.async = true;
+    for (let attempt = 0; attempt < CONFIG.availabilityRetries; attempt += 1) {
+      const api = window.zissonWebChat;
 
-              script.onerror = () => {
-                clearTimeout(timeout);
-                reject(new Error("Kunne ikke laste Zisson"));
-              };
+      lastSnapshot = {
+        open: api?.isOpen === true,
+        available: api?.agentsAreAvailable === true,
+      };
 
-              document.body.appendChild(script);
-            } else {
-              waitForReadyState();
-            }
-          });
+      if (lastSnapshot.open || lastSnapshot.available) {
+        break;
+      }
 
-          return state.zissonReadyPromise;
-        }
+      await delay(CONFIG.availabilityRetryDelayMs);
+    }
 
-        async function getAvailabilitySnapshot() {
-          await ensureZissonLoaded();
+    return lastSnapshot;
+  }
 
-          let lastSnapshot = {
-            open: false,
-            available: false,
-          };
+  async function syncAvailabilityUI(elements) {
+    try {
+      const snapshot = await getAvailabilitySnapshot();
+      state.chatAvailable = snapshot.open && snapshot.available;
 
-          for (
-            let attempt = 0;
-            attempt < CONFIG.availabilityRetries;
-            attempt += 1
-          ) {
-            const api = window.zissonWebChat;
-
-            lastSnapshot = {
-              open: api?.isOpen === true,
-              available: api?.agentsAreAvailable === true,
-            };
-
-            if (lastSnapshot.open || lastSnapshot.available) {
-              break;
-            }
-
-            await delay(CONFIG.availabilityRetryDelayMs);
-          }
-
-          return lastSnapshot;
-        }
-
-        async function syncAvailabilityUI(elements) {
-          try {
-            const snapshot = await getAvailabilitySnapshot();
-            state.chatAvailable = snapshot.open && snapshot.available;
-
-            /*console.log("Zisson status:", {
+      /*console.log("Zisson status:", {
         isOpen: snapshot.open,
         agentsAreAvailable: snapshot.available,
         chatAvailable: state.chatAvailable,
       });*/
 
-            setPanelMode(elements, state.chatAvailable);
-            updateSubmitState(elements);
-          } catch (error) {
-            console.error("Feil ved lasting av Zisson:", error);
-            state.chatAvailable = false;
-            setPanelMode(elements, false);
-            updateSubmitState(elements);
-          }
-        }
-
-         async function startExternalChat(elements, closeBtn, inputDefaults) {
-    if (state.isStartingChat) return;
-
-    state.isStartingChat = true;
-    updateSubmitState(elements);
-
-    try {
-      const api = await ensureZissonLoaded();
-
-      api.reload?.();
-      
-      await waitForApiSnapshot();
-      await delay(CONFIG.startReloadDelayMs);
-      
-      document.body.classList.remove("mh-hide-zisson");
-      
-      api.openWidget?.();
-
-      await waitForWidgetMount();
-      await delay(1000);
-      
-      api.setDefaults?.(inputDefaults);
-
-      state.conversationEndedByUser = false;
-
-      api.startConversation?.();
-      state.hasActiveConversation = true;
-      closeBtn.style.display = "block";
-      placeCloseButton();
+      setPanelMode(elements, state.chatAvailable);
+      updateSubmitState(elements);
     } catch (error) {
-      console.error("Feil ved startExternalChat:", error);
-      throw error;
-    } finally {
-      state.isStartingChat = false;
+      console.error("Feil ved lasting av Zisson:", error);
+      state.chatAvailable = false;
+      setPanelMode(elements, false);
       updateSubmitState(elements);
     }
   }
+async function startExternalChat(elements, closeBtn, inputDefaults) {
+  if (state.isStartingChat) return;
 
-        async function waitForApiSnapshot() {
-          const startedAt = Date.now();
+  state.isStartingChat = true;
+  updateSubmitState(elements);
 
-          while (Date.now() - startedAt < CONFIG.readyTimeoutMs) {
-            const api = window.zissonWebChat;
+  try {
+    const api = await ensureZissonLoaded();
 
-            if (
-              api &&
-              typeof api.isOpen === "boolean" &&
-              typeof api.agentsAreAvailable === "boolean"
-            ) {
-              return api;
-            }
+    api.reload?.();
 
-            await delay(CONFIG.readyPollMs);
-          }
+    await waitForApiSnapshot();
+    await delay(CONFIG.startReloadDelayMs);
 
-          throw new Error("Zisson API ble ikke klar etter reload");
-        }
+    api.openWidget?.();
 
-        async function waitForWidgetMount() {
-          const startedAt = Date.now();
+    await waitForWidgetMount();
 
-          while (Date.now() - startedAt < CONFIG.readyTimeoutMs) {
-            const widget =
-              document.querySelector('iframe[src*="chat2.zisson.com"]') ||
-              document.querySelector('[id*="zisson"]') ||
-              document.querySelector('[class*="zisson"]') ||
-              document.querySelector('[id*="wavechat"]') ||
-              document.querySelector('[class*="wavechat"]');
+    api.setDefaults?.(inputDefaults);
 
-            if (widget) {
-              return widget;
-            }
+    await delay(200);
 
-            await delay(100);
-          }
+    state.conversationEndedByUser = false;
 
-          throw new Error("Zisson-widget ble ikke montert i tide");
-        }
+    const conversationStartedPromise = waitForConversationStart(7000);
 
-        function placeCloseButton() {
-          if (!closeBtn) return;
+    api.startConversation?.();
 
-          // Ikke vis krysset med mindre vi faktisk er inne i ekstern chat
-          if (!state.hasActiveConversation) {
-            closeBtn.style.display = "none";
-            return;
-          }
+    document.body.classList.remove("mh-hide-zisson");
 
-          const zissonElement = document.querySelector(
-            'iframe[src*="chat2.zisson.com"]',
-          );
+    try {
+      await conversationStartedPromise;
+      state.hasActiveConversation = true;
+    } catch (error) {
+      console.warn("Automatisk start av samtale feilet:", error);
+      state.hasActiveConversation = false;
+    }
 
-          if (!zissonElement) {
-            closeBtn.style.display = "none";
-            return;
-          }
+    closeBtn.style.display = "block";
+    placeCloseButton();
+  } catch (error) {
+    console.error("Feil ved startExternalChat:", error);
+    throw error;
+  } finally {
+    state.isStartingChat = false;
+    updateSubmitState(elements);
+  }
+}
+  async function waitForApiSnapshot() {
+    const startedAt = Date.now();
 
-          const rect = zissonElement.getBoundingClientRect();
+    while (Date.now() - startedAt < CONFIG.readyTimeoutMs) {
+      const api = window.zissonWebChat;
 
-          if (rect.width === 0 || rect.height === 0) {
-            closeBtn.style.display = "none";
-            return;
-          }
+      if (
+        api &&
+        typeof api.isOpen === "boolean" &&
+        typeof api.agentsAreAvailable === "boolean"
+      ) {
+        return api;
+      }
 
-          closeBtn.style.position = "fixed";
-          closeBtn.style.top = `${rect.top + 10}px`;
-          closeBtn.style.left = `${rect.right - 46}px`;
-          closeBtn.style.display = "block";
-        }
+      await delay(CONFIG.readyPollMs);
+    }
 
-        function prewarmZisson() {
-          const run = async () => {
-            try {
-              await ensureZissonLoaded();
-              await getAvailabilitySnapshot();
-            } catch (error) {
-              console.error("Prewarm av Zisson feilet:", error);
-            }
-          };
+    throw new Error("Zisson API ble ikke klar etter reload");
+  }
 
-          if ("requestIdleCallback" in window) {
-            window.requestIdleCallback(run, { timeout: 2000 });
-          } else {
-            window.setTimeout(run, 300);
-          }
-        }
+  async function waitForWidgetMount() {
+    const startedAt = Date.now();
 
-        function delay(ms) {
-          return new Promise((resolve) => setTimeout(resolve, ms));
-        }
-        function setAccordion(open) {
-          privacyBtn.setAttribute("aria-expanded", String(open));
-          privacyPanel.hidden = !open;
+    while (Date.now() - startedAt < CONFIG.readyTimeoutMs) {
+      const widget =
+        document.querySelector('iframe[src*="chat2.zisson.com"]') ||
+        document.querySelector('[id*="zisson"]') ||
+        document.querySelector('[class*="zisson"]') ||
+        document.querySelector('[id*="wavechat"]') ||
+        document.querySelector('[class*="wavechat"]');
 
-          privacyBtn.classList.toggle("is-open", open);
+      if (widget) {
+        return widget;
+      }
 
-          if (open) {
-            privacyPanel.scrollIntoView({
-              block: "nearest",
-              behavior: "smooth",
-            });
-          }
-        }
+      await delay(100);
+    }
 
-        if (privacyBtn && privacyPanel) {
-          privacyBtn.addEventListener("click", () => {
-            const isOpen = privacyBtn.getAttribute("aria-expanded") === "true";
-            setAccordion(!isOpen);
-          });
-        }
-      })();
+    throw new Error("Zisson-widget ble ikke montert i tide");
+  }
+
+  function placeCloseButton() {
+    if (!closeBtn) return;
+
+    // Ikke vis krysset med mindre vi faktisk er inne i ekstern chat
+    if (!state.hasActiveConversation) {
+      closeBtn.style.display = "none";
+      return;
+    }
+
+    const zissonElement = document.querySelector(
+      'iframe[src*="chat2.zisson.com"]',
+    );
+
+    if (!zissonElement) {
+      closeBtn.style.display = "none";
+      return;
+    }
+
+    const rect = zissonElement.getBoundingClientRect();
+
+    if (rect.width === 0 || rect.height === 0) {
+      closeBtn.style.display = "none";
+      return;
+    }
+
+    closeBtn.style.position = "fixed";
+    closeBtn.style.top = `${rect.top + 10}px`;
+    closeBtn.style.left = `${rect.right - 46}px`;
+    closeBtn.style.display = "block";
+  }
+
+  function prewarmZisson() {
+    const run = async () => {
+      try {
+        await ensureZissonLoaded();
+        await getAvailabilitySnapshot();
+      } catch (error) {
+        console.error("Prewarm av Zisson feilet:", error);
+      }
+    };
+
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(run, { timeout: 2000 });
+    } else {
+      window.setTimeout(run, 300);
+    }
+  }
+  function waitForConversationStart(timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      window.removeEventListener("zConversationStarted", onStart);
+      reject(new Error("Samtalen startet ikke i tide"));
+    }, timeout);
+
+    function onStart() {
+      clearTimeout(timer);
+      window.removeEventListener("zConversationStarted", onStart);
+      resolve(true);
+    }
+
+    window.addEventListener("zConversationStarted", onStart);
+  });
+}
+
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+  function setAccordion(open) {
+    privacyBtn.setAttribute("aria-expanded", String(open));
+    privacyPanel.hidden = !open;
+
+    privacyBtn.classList.toggle("is-open", open);
+
+    if (open) {
+      privacyPanel.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }
+  }
+
+  if (privacyBtn && privacyPanel) {
+    privacyBtn.addEventListener("click", () => {
+      const isOpen = privacyBtn.getAttribute("aria-expanded") === "true";
+      setAccordion(!isOpen);
+    });
+  }
+})();
