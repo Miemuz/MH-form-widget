@@ -52,7 +52,7 @@
   bindEvents(elements, closeBtn, wrapper);
   attachConversationEndedListener();
   updateSubmitState(elements);
-  //prewarmZisson();
+  prewarmZisson();
 
   function injectStyles() {
     const style = document.createElement("style");
@@ -1119,7 +1119,7 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     await waitForApiSnapshot();
     await delay(CONFIG.startReloadDelayMs);
 
-    api.openWidget?.();
+
 
     await waitForWidgetMount();
 
@@ -1132,7 +1132,7 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     const conversationStartedPromise = waitForConversationStart(7000);
 
     api.startConversation?.();
-
+    api.openWidget?.();
     document.body.classList.remove("mh-hide-zisson");
 
     try {
