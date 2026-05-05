@@ -1120,43 +1120,43 @@
           }
         }
 
-        async function startExternalChat(elements, closeBtn, inputDefaults) {
-          if (state.isStartingChat) return;
+         async function startExternalChat(elements, closeBtn, inputDefaults) {
+    if (state.isStartingChat) return;
 
-          state.isStartingChat = true;
-          updateSubmitState(elements);
+    state.isStartingChat = true;
+    updateSubmitState(elements);
 
-          try {
-            const api = await ensureZissonLoaded();
+    try {
+      const api = await ensureZissonLoaded();
 
-            api.reload?.();
+      api.reload?.();
+      
+      await waitForApiSnapshot();
+      await delay(CONFIG.startReloadDelayMs);
+      
+      document.body.classList.remove("mh-hide-zisson");
+      
+      api.openWidget?.();
 
-            await waitForApiSnapshot();
-            await delay(CONFIG.startReloadDelayMs);
+      await waitForWidgetMount();
+      await delay(1000);
+      
+      api.setDefaults?.(inputDefaults);
 
-            document.body.classList.remove("mh-hide-zisson");
+      state.conversationEndedByUser = false;
 
-            api.openWidget?.();
-
-            await waitForWidgetMount();
-            await delay(1000);
-
-            api.setDefaults?.(inputDefaults);
-
-            await delay(1000);
-
-            api.startConversation?.();
-            state.hasActiveConversation = true;
-            closeBtn.style.display = "block";
-            placeCloseButton();
-          } catch (error) {
-            console.error("Feil ved startExternalChat:", error);
-            throw error;
-          } finally {
-            state.isStartingChat = false;
-            updateSubmitState(elements);
-          }
-        }
+      api.startConversation?.();
+      state.hasActiveConversation = true;
+      closeBtn.style.display = "block";
+      placeCloseButton();
+    } catch (error) {
+      console.error("Feil ved startExternalChat:", error);
+      throw error;
+    } finally {
+      state.isStartingChat = false;
+      updateSubmitState(elements);
+    }
+  }
 
         async function waitForApiSnapshot() {
           const startedAt = Date.now();
