@@ -1,20 +1,18 @@
 (() => {
   const CONFIG = {
     zissonScriptSrc: "https://chat2.zisson.com/bootstrapper.js",
-    zissonJwt:
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjdXN0b21lcklkIjoiNzM2IiwiY3VzdG9tZXJHdWlkIjoiYWE3NWE3N2ItODgyNi00YjBhLWE3N2YtM2JiNTBiYTQxZTkxIiwiZW50cnlQb2ludEd1aWQiOiJiYjE2OTk3MS1lNmNiLTQzNDAtYmY5YS03M2VlYzgwN2YzNjAiLCJuYmYiOjE3NjM0NTIzODUsImV4cCI6MTkyMTIxODc4NSwiaWF0IjoxNzYzNDUyMzg1LCJpc3MiOiJ6aXNzb24iLCJhdWQiOiJ3YXZlQ2hhdCJ9.tzOYuMcrK25rEAovnNYsK6kLLUh_Gai6qDvw9dCBfjs",
-    readyTimeoutMs: 10000,
+    jwtEndpoint: "https://api.mieronningen.workers.dev",
     readyPollMs: 150,
     availabilityRetries: 8,
     availabilityRetryDelayMs: 350,
     startReloadDelayMs: 700,
     startConversationDelayMs: 1500,
+    readyTimeoutMs: 20000,
   };
 
   const state = {
     zissonReadyPromise: null,
     externalChatLoaded: false,
-    chatAvailable: false,
     isStartingChat: false,
     hasActiveConversation: false,
     conversationEndedByUser: false,
@@ -38,7 +36,6 @@
     age: wrapper.querySelector("#mh-age"),
     gdpr: wrapper.querySelector("#mh-gdpr"),
     openView: wrapper.querySelector(".mh-open-view"),
-    closedView: wrapper.querySelector(".mh-closed-view"),
   };
   const privacyBtn = wrapper.querySelector('[data-action="toggle-privacy"]');
   const privacyPanel = wrapper.querySelector("#mhPrivacyPanel");
@@ -46,7 +43,6 @@
   bindEvents(elements, closeBtn, wrapper);
   attachConversationEndedListener();
   updateSubmitState(elements);
-  prewarmZisson();
 
   function injectStyles() {
     const style = document.createElement("style");
@@ -276,77 +272,6 @@
               width: 20px;
               height: 50px;
               display: block;
-            }
-
-            .mh-chat-panel.closed{
-              background: white;
-              color: var(--mh-text);
-            }
-
-            .card{
-              background: #ffffff;
-              border-radius: 18px;
-              padding: 24px 20px;
-            }
-
-            .title{
-              font-size: 1.75rem;
-              font-weight: 700;
-              line-height: 1.25;
-              text-align: left;
-              margin-bottom: 24px;
-            }
-
-            .section{
-              margin-bottom: 24px;
-            }
-
-            .section-title{
-              font-size: 0.95rem;
-              font-weight: 600;
-              margin-bottom: 8px;
-              color: #1f2a2a;
-            }
-
-            .section-text{
-              font-size: 1rem;
-              line-height: 1.6;
-              color: #374444;
-            }
-
-            .help-box{
-              background: #e8f3ef;
-              border-radius: 16px;
-              padding: 16px;
-              margin-bottom: 24px;
-              box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-            }
-
-            .help-box p{
-              line-height: 1.6;
-            }
-
-            .help-main{
-              font-size: 1rem;
-              font-weight: 600;
-              margin-bottom: 8px;
-              color: #1f2a2a;
-            }
-
-            .help-contact{
-              font-size: 1rem;
-              color: #1f2a2a;
-              margin-bottom: 8px;
-            }
-
-            .help-note{
-              font-size: 0.92rem;
-              color: #5f6b6b;
-            }
-
-            .call-button{
-              text-decoration: none;
-              color: var(--mh-primary);
             }
             .mh-chat-hint{
               position: fixed;
@@ -811,28 +736,6 @@
 
                 <button class="mh-submit" type="submit" disabled>Start chat</button>
               </div>
-
-              <div class="mh-closed-view" style="display:none">
-                <section class="card">
-                  <h2 class="title">Chatten er dessverre stengt nå</h2>
-
-                  <div class="help-box">
-                    <p class="help-main">Trenger du noen å snakke med?</p>
-                    <p class="help-contact">
-                      📞 <a class="call-button" href="tel:116123">Ring 116 123</a><br />
-                      💬 <a
-                        class="call-button"
-                        href="https://mentalhelse.no/"
-                        target="_blank"
-                        rel="noopener"
-                      >
-                        Kontakt Mental Helse Chat
-                      </a>
-                    </p>
-                    <p class="help-note">Vi er her for deg hele døgnet.</p>
-                  </div>
-                </section>
-              </div>
             </form>
           `;
 
@@ -855,17 +758,14 @@
         closePreChatPanel(elements);
         return;
       }
-
-      openLoadingState(elements);
-      await syncAvailabilityUI(elements);
       openPreChatPanel(elements);
+      updateSubmitState(elements);
     });
 
     elements.panel.addEventListener("submit", async (event) => {
       event.preventDefault();
 
       if (!isValid(elements)) return;
-      if (!state.chatAvailable) return;
       if (state.isStartingChat) return;
 
       try {
@@ -930,18 +830,13 @@
     );
   }
 
-  function updateSubmitState(elements) {
-    const enabled =
-      isValid(elements) && state.chatAvailable && !state.isStartingChat;
-    elements.submit.disabled = !enabled;
-    elements.submit.classList.toggle("active", enabled);
-  }
+function updateSubmitState(elements) {
+  const enabled = isValid(elements) && !state.isStartingChat;
 
-  function setPanelMode(elements, isAvailable) {
-    elements.openView.style.display = isAvailable ? "block" : "none";
-    elements.closedView.style.display = isAvailable ? "none" : "block";
-    elements.panel.classList.toggle("closed", !isAvailable);
-  }
+  elements.submit.disabled = !enabled;
+  elements.submit.classList.toggle("active", enabled);
+}
+
 
   function openPreChatPanel(elements) {
     elements.panel.style.display = "block";
@@ -949,17 +844,12 @@
   }
 
   function closePreChatPanel(elements) {
-    elements.panel.style.display = "none";
-    elements.panel.reset();
-    state.isPanelOpen = false;
-    setPanelMode(elements, true);
-    updateSubmitState(elements);
+  elements.panel.style.display = "none";
+  elements.panel.reset();
+  state.isPanelOpen = false;
+  updateSubmitState(elements);
   }
 
-  function openLoadingState(elements) {
-    elements.submit.disabled = true;
-    elements.submit.classList.remove("active");
-  }
 
   function restorePreChatUI(elements, closeBtn, wrapper) {
     wrapper.style.display = "block";
@@ -967,13 +857,11 @@
     closeBtn.style.display = "none";
     elements.panel.reset();
 
-    state.chatAvailable = false;
     state.isStartingChat = false;
     state.hasActiveConversation = false;
     state.conversationEndedByUser = false;
     state.isPanelOpen = false;
 
-    setPanelMode(elements, true);
     updateSubmitState(elements);
   }
 
@@ -988,32 +876,31 @@
   }
 
 
-  function ensureZissonLoaded() {
-    if (
-      window.zissonWebChat &&
-      typeof window.zissonWebChat.isOpen === "boolean" &&
-      typeof window.zissonWebChat.agentsAreAvailable === "boolean"
-    ) {
-      return Promise.resolve(window.zissonWebChat);
-    }
+async function ensureZissonLoaded(inputDefaults, elements) {
+  if (window.zissonWebChat) {
+    return window.zissonWebChat;
+  }
 
-    if (state.zissonReadyPromise) return state.zissonReadyPromise;
+  if (state.zissonReadyPromise) {
+    return state.zissonReadyPromise;
+  }
 
-    document.body.classList.add("mh-hide-zisson");
+  document.body.classList.add("mh-hide-zisson");
 
-    state.zissonReadyPromise = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
+  state.zissonReadyPromise = new Promise(async (resolve, reject) => {
+    let timeout;
+
+    try {
+      const jwt = await getZissonJwt(inputDefaults, elements);
+
+      timeout = setTimeout(() => {
         reject(new Error("Timeout: Zisson ble ikke klar i tide"));
       }, CONFIG.readyTimeoutMs);
 
       const waitForReadyState = () => {
         const api = window.zissonWebChat;
 
-        if (
-          api &&
-          typeof api.isOpen === "boolean" &&
-          typeof api.agentsAreAvailable === "boolean"
-        ) {
+        if (api) {
           clearTimeout(timeout);
           resolve(api);
           return;
@@ -1022,83 +909,35 @@
         setTimeout(waitForReadyState, CONFIG.readyPollMs);
       };
 
-      window.addEventListener(
-        "zissonWebChat",
-        () => {
-          waitForReadyState();
-        },
-        { once: true },
-      );
+      window.addEventListener("zissonWebChat", waitForReadyState, {
+        once: true,
+      });
 
-      if (!state.externalChatLoaded) {
-        state.externalChatLoaded = true;
+      const script = document.createElement("script");
+      script.src = CONFIG.zissonScriptSrc;
+      script.type = "text/javascript";
+      script.setAttribute("data-jwt", jwt);
+      script.async = true;
 
-        const script = document.createElement("script");
-        script.src = CONFIG.zissonScriptSrc;
-        script.type = "text/javascript";
-        script.setAttribute("data-jwt", CONFIG.zissonJwt);
-        script.async = true;
-
-        script.onerror = () => {
-          clearTimeout(timeout);
-          reject(new Error("Kunne ikke laste Zisson"));
-        };
-
-        document.body.appendChild(script);
-      } else {
+      script.onload = () => {
         waitForReadyState();
-      }
-    });
-
-    return state.zissonReadyPromise;
-  }
-
-  async function getAvailabilitySnapshot() {
-    await ensureZissonLoaded();
-
-    let lastSnapshot = {
-      open: false,
-      available: false,
-    };
-
-    for (let attempt = 0; attempt < CONFIG.availabilityRetries; attempt += 1) {
-      const api = window.zissonWebChat;
-
-      lastSnapshot = {
-        open: api?.isOpen === true,
-        available: api?.agentsAreAvailable === true,
       };
 
-      if (lastSnapshot.open || lastSnapshot.available) {
-        break;
-      }
+      script.onerror = () => {
+        clearTimeout(timeout);
+        reject(new Error("Kunne ikke laste Zisson-scriptet"));
+      };
 
-      await delay(CONFIG.availabilityRetryDelayMs);
-    }
-
-    return lastSnapshot;
-  }
-
-  async function syncAvailabilityUI(elements) {
-    try {
-      const snapshot = await getAvailabilitySnapshot();
-      state.chatAvailable = snapshot.open && snapshot.available;
-
-      /*console.log("Zisson status:", {
-        isOpen: snapshot.open,
-        agentsAreAvailable: snapshot.available,
-        chatAvailable: state.chatAvailable,
-      });*/
-
-      setPanelMode(elements, state.chatAvailable);
-      updateSubmitState(elements);
+      document.body.appendChild(script);
     } catch (error) {
-      console.error("Feil ved lasting av Zisson:", error);
-      state.chatAvailable = false;
-      setPanelMode(elements, false);
-      updateSubmitState(elements);
+      if (timeout) clearTimeout(timeout);
+      reject(error);
     }
-  }
+  });
+
+  return state.zissonReadyPromise;
+}
+
 async function startExternalChat(elements, closeBtn, inputDefaults) {
   if (state.isStartingChat) return;
 
@@ -1106,7 +945,7 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
   updateSubmitState(elements);
 
   try {
-    const api = await ensureZissonLoaded();
+    const api = await ensureZissonLoaded(inputDefaults, elements);
 
     document.body.classList.add("mh-hide-zisson");
 
@@ -1182,27 +1021,21 @@ function waitForConversationStart(timeoutMs = 5000) {
     window.addEventListener("zConversationStarted", onStarted);
   });
 }
+async function waitForApiSnapshot() {
+  const startedAt = Date.now();
 
-  async function waitForApiSnapshot() {
-    const startedAt = Date.now();
+  while (Date.now() - startedAt < CONFIG.readyTimeoutMs) {
+    const api = window.zissonWebChat;
 
-    while (Date.now() - startedAt < CONFIG.readyTimeoutMs) {
-      const api = window.zissonWebChat;
-
-      if (
-        api &&
-        typeof api.isOpen === "boolean" &&
-        typeof api.agentsAreAvailable === "boolean"
-      ) {
-        return api;
-      }
-
-      await delay(CONFIG.readyPollMs);
+    if (api) {
+      return api;
     }
 
-    throw new Error("Zisson API ble ikke klar etter reload");
+    await delay(CONFIG.readyPollMs);
   }
-  
+
+  throw new Error("Zisson API ble ikke klar etter reload");
+}
 
   async function waitForWidgetMount() {
     const startedAt = Date.now();
@@ -1256,38 +1089,6 @@ function waitForConversationStart(timeoutMs = 5000) {
     closeBtn.style.display = "block";
   }
 
-  function prewarmZisson() {
-    const run = async () => {
-      try {
-        await ensureZissonLoaded();
-        await getAvailabilitySnapshot();
-      } catch (error) {
-        console.error("Prewarm av Zisson feilet:", error);
-      }
-    };
-
-    if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(run, { timeout: 2000 });
-    } else {
-      window.setTimeout(run, 300);
-    }
-  }
-  function waitForConversationStart(timeout = 5000) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      window.removeEventListener("zConversationStarted", onStart);
-      reject(new Error("Samtalen startet ikke i tide"));
-    }, timeout);
-
-    function onStart() {
-      clearTimeout(timer);
-      window.removeEventListener("zConversationStarted", onStart);
-      resolve(true);
-    }
-
-    window.addEventListener("zConversationStarted", onStart);
-  });
-}
 
   function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -1312,4 +1113,30 @@ function waitForConversationStart(timeoutMs = 5000) {
       setAccordion(!isOpen);
     });
   }
+async function getZissonJwt(inputDefaults, elements) {
+  const response = await fetch(CONFIG.jwtEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      kjonn: inputDefaults.kjonn,
+      alder: inputDefaults.alder,
+      fylke: inputDefaults.fylke,
+      gdpr: elements.gdpr.checked,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Kunne ikke hente JWT fra Worker");
+  }
+
+  const data = await response.json();
+
+  if (!data.jwt) {
+    throw new Error("JWT mangler fra Worker");
+  }
+
+  return data.jwt;
+}
 })();
