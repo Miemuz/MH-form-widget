@@ -968,21 +968,26 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
 
     const started = await startConversationWithRetry(api, inputDefaults, 20, 1500);
 
-    if(!started) {
-      console.warn("Automatisk start feilet")
-    
-      state.hasActiveConversation = false;
+if (!started) {
+  state.hasActiveConversation = false;
+  state.isStartingChat = false;
+  state.isPanelOpen = true;
 
-      api.hideWidget?.();
-      document.body
+  closeBtn.style.display = "none";
 
-      closeBtn.style.display = "none";
-      wrapper.style.display = "block";
-      elements.panel.style.display = "block";
-      state.isPanelOpen = true;
+  api.hideWidget?.();
+  document.body.classList.add("mh-hide-zisson");
 
-      return;
-    }
+  wrapper.style.display = "block";
+  elements.panel.style.display = "block";
+
+  elements.submit.disabled = false;
+  elements.submit.classList.add("active");
+
+  alert("Vi fikk ikke startet chatten. Prøv igjen, eller slå av VPN hvis problemet fortsetter.");
+
+  return;
+}
 
     state.hasActiveConversation = true;
 
