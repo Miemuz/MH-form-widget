@@ -966,7 +966,7 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
 
     state.conversationEndedByUser = false;
 
-    const started = await startConversationWithRetry(api, inputDefaults, 10, 1000);
+    const started = await startConversationWithRetry(api, inputDefaults, 15, 1200);
 
     state.hasActiveConversation = true;
 
@@ -989,9 +989,12 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     updateSubmitState(elements);
   }
 }
-async function startConversationWithRetry(api, inputDefaults, attempts = 10, delayMs = 1000) {
+async function startConversationWithRetry(api, inputDefaults, attempts = 15, delayMs = 1200) {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     api.setDefaults?.(inputDefaults);
+
+    await delay(500);
+
     const startedPromise = waitForConversationStart(delayMs);
 
     api.startConversation?.();
@@ -1000,6 +1003,7 @@ async function startConversationWithRetry(api, inputDefaults, attempts = 10, del
       await startedPromise;
       return true;
     } catch (error) {
+      console.warn(`Startforsøk ${attempt + 1} feilet`, error);
       await delay(delayMs);
     }
   }
