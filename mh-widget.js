@@ -966,20 +966,31 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
 
     state.conversationEndedByUser = false;
 
-    const started = await startConversationWithRetry(api, inputDefaults, 15, 1200);
+    const started = await startConversationWithRetry(api, inputDefaults, 20, 1500);
+
+    if(!started) {
+      console.warn("Automatisk start feilet")
+    
+      state.hasActiveConversation = false;
+
+      api.hideWidget?.();
+      document.body
+
+      closeBtn.style.display = "none";
+      wrapper.style.display = "block";
+      elements.panel.style.display = "block";
+      state.isPanelOpen = true;
+
+      return;
+    }
 
     state.hasActiveConversation = true;
 
     // Vis Zisson først etter at vi har prøvd å starte samtalen
     document.body.classList.remove("mh-hide-zisson");
 
-    if (!started) {
-      console.warn(
-        "Automatisk start feilet. Brukeren må eventuelt trykke Start manuelt.",
-      );
-    }
+    await delay(300);
 
-    closeBtn.style.display = "block";
     placeCloseButton();
   } catch (error) {
     console.error("Feil ved startExternalChat:", error);
@@ -989,7 +1000,7 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     updateSubmitState(elements);
   }
 }
-async function startConversationWithRetry(api, inputDefaults, attempts = 15, delayMs = 1200) {
+async function startConversationWithRetry(api, inputDefaults, attempts = 20, delayMs = 1500) {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     api.setDefaults?.(inputDefaults);
 
