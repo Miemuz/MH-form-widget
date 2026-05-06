@@ -36,6 +36,7 @@
     age: wrapper.querySelector("#mh-age"),
     gdpr: wrapper.querySelector("#mh-gdpr"),
     openView: wrapper.querySelector(".mh-open-view"),
+    statusMessage: wrapper.querySelector(".mh-status-message")
   };
   const privacyBtn = wrapper.querySelector('[data-action="toggle-privacy"]');
   const privacyPanel = wrapper.querySelector("#mhPrivacyPanel");
@@ -122,6 +123,14 @@
               font-size: 0.85rem;
               font-family: inherit;
             }
+            .mh-status-message{
+            font-size: 0.85rem;
+            color: #b42318;
+            text-align: center;
+            margin-top: 10px;
+            line-height: 1.4;
+            min-height: 20px;
+          }
 
             .mh-submit{
               display: block;
@@ -734,6 +743,8 @@
                   </p>
                 </div>
 
+                <p class="mh-status-message"></p>
+
                 <button class="mh-submit" type="submit" disabled>Start chat</button>
               </div>
             </form>
@@ -762,29 +773,31 @@
       updateSubmitState(elements);
     });
 
-    elements.panel.addEventListener("submit", async (event) => {
-      event.preventDefault();
+elements.panel.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-      if (!isValid(elements)) return;
-      if (state.isStartingChat) return;
+  if (!isValid(elements)) return;
+  if (state.isStartingChat) return;
 
-      try {
-        await startExternalChat(elements, closeBtn, {
-          fylke: elements.county.value,
-          alder: elements.age.value,
-          kjonn: elements.gender.value,
-        });
-
-        elements.panel.style.display = "none";
-        state.isPanelOpen = false;
-        wrapper.style.display = "none";
-        elements.panel.reset();
-      } catch (error) {
-        console.error("Feil ved start av chat:", error);
-        state.isStartingChat = false;
-        updateSubmitState(elements);
-      }
+  try {
+    const started = await startExternalChat(elements, closeBtn, {
+      fylke: elements.county.value,
+      alder: elements.age.value,
+      kjonn: elements.gender.value,
     });
+
+    if (!started) return;
+
+    elements.panel.style.display = "none";
+    state.isPanelOpen = false;
+    wrapper.style.display = "none";
+    elements.panel.reset();
+  } catch (error) {
+    console.error("Feil ved start av chat:", error);
+    state.isStartingChat = false;
+    updateSubmitState(elements);
+  }
+});
 
     [elements.county, elements.gender, elements.age].forEach((element) => {
       element.addEventListener("change", () => updateSubmitState(elements));
@@ -939,10 +952,15 @@ async function ensureZissonLoaded(inputDefaults, elements) {
 }
 
 async function startExternalChat(elements, closeBtn, inputDefaults) {
-  if (state.isStartingChat) return;
+  if (state.isStartingChat) return false;
 
   state.isStartingChat = true;
   updateSubmitState(elements);
+
+  if (elements.statusMessage) {
+    elements.statusMessage.textContent =
+      "Starter chatten, dette kan ta litt tid på tregt nett eller VPN.";
+  }
 
   try {
     const api = await ensureZissonLoaded(inputDefaults, elements);
@@ -954,52 +972,61 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     await waitForApiSnapshot();
     await delay(CONFIG.startReloadDelayMs);
 
-    // Zisson krever at widgeten åpnes først, men vi holder den skjult
     api.openWidget?.();
 
     await waitForWidgetMount();
 
-    // Send inn kjønn, alder og fylke før samtalen startes
     api.setDefaults?.(inputDefaults);
 
     await delay(1000);
 
     state.conversationEndedByUser = false;
 
-    const started = await startConversationWithRetry(api, inputDefaults, 20, 1500);
+    const started = await startConversationWithRetry(
+      api,
+      inputDefaults,
+      20,
+      1500,
+    );
 
-if (!started) {
-  state.hasActiveConversation = false;
-  state.isStartingChat = false;
-  state.isPanelOpen = true;
+    if (!started) {
+      console.warn("Automatisk start feilet.");
 
-  closeBtn.style.display = "none";
+      state.hasActiveConversation = false;
+      closeBtn.style.display = "none";
 
-  api.hideWidget?.();
-  document.body.classList.add("mh-hide-zisson");
+      if (elements.statusMessage) {
+        elements.statusMessage.textContent =
+          "Vi fikk ikke kontakt med chatten. Prøv igjen, eller slå av VPN hvis problemet fortsetter.";
+      }
 
-  wrapper.style.display = "block";
-  elements.panel.style.display = "block";
-
-  elements.submit.disabled = false;
-  elements.submit.classList.add("active");
-
-  alert("Vi fikk ikke startet chatten. Prøv igjen, eller slå av VPN hvis problemet fortsetter.");
-
-  return;
-}
+      return false;
+    }
 
     state.hasActiveConversation = true;
 
-    // Vis Zisson først etter at vi har prøvd å starte samtalen
     document.body.classList.remove("mh-hide-zisson");
 
-    await delay(300);
+    if (elements.statusMessage) {
+      elements.statusMessage.textContent = "";
+    }
 
+    await delay(300);
     placeCloseButton();
+
+    return true;
   } catch (error) {
     console.error("Feil ved startExternalChat:", error);
-    throw error;
+
+    state.hasActiveConversation = false;
+    closeBtn.style.display = "none";
+
+    if (elements.statusMessage) {
+      elements.statusMessage.textContent =
+        "Noe gikk galt da chatten skulle startes. Prøv igjen.";
+    }
+
+    return false;
   } finally {
     state.isStartingChat = false;
     updateSubmitState(elements);
