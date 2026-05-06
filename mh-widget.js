@@ -962,11 +962,11 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     // Send inn kjønn, alder og fylke før samtalen startes
     api.setDefaults?.(inputDefaults);
 
-    await delay(300);
+    await delay(1000);
 
     state.conversationEndedByUser = false;
 
-    const started = await startConversationWithRetry(api, 10, 700);
+    const started = await startConversationWithRetry(api, inputDefaults, 10, 1000);
 
     state.hasActiveConversation = true;
 
@@ -989,8 +989,9 @@ async function startExternalChat(elements, closeBtn, inputDefaults) {
     updateSubmitState(elements);
   }
 }
-async function startConversationWithRetry(api, attempts = 10, delayMs = 700) {
+async function startConversationWithRetry(api, inputDefaults, attempts = 10, delayMs = 1000) {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
+    api.setDefaults?.(inputDefaults);
     const startedPromise = waitForConversationStart(delayMs);
 
     api.startConversation?.();
