@@ -1,4 +1,4 @@
-      (() => {
+(() => {
         const CONFIG = {
           zissonScriptSrc: "https://chat2.zisson.com/bootstrapper.js",
           jwtEndpoint: "https://api.mieronningen.workers.dev",
@@ -37,6 +37,7 @@
           gdpr: wrapper.querySelector("#mh-gdpr"),
           openView: wrapper.querySelector(".mh-open-view"),
           statusMessage: wrapper.querySelector(".mh-status-message"),
+          panelClose: wrapper.querySelector(".mh-panel-close"),
         };
         const privacyBtn = wrapper.querySelector(
           '[data-action="toggle-privacy"]',
@@ -126,12 +127,11 @@
               font-family: inherit;
             }
             .mh-status-message{
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             color: #b42318;
             text-align: center;
-            margin-top: 10px;
-            line-height: 1.4;
-            min-height: 20px;
+            margin-top: 4px;
+            min-height: 5px;
           }
 
             .mh-submit{
@@ -512,6 +512,23 @@
               75%  { content: "..."; }
               100% { content: ""; }
             }
+            .mh-panel-close{
+              margin-left: auto;
+              margin-right: 10px;
+
+              border: none;
+              background: transparent;
+              color: white;
+
+              font-size: 22px;
+              cursor: pointer;
+
+              opacity: 0.9;
+            }
+
+            .mh-panel-close:hover{
+              opacity: 1;
+            }
 
             @media (max-width: 480px){
               .mh-chat-panel{
@@ -600,6 +617,13 @@
                   class="mh-img"
                 />
                 <p class="mh-header-text">Mental Helse chat</p>
+                <button
+                  type="button"
+                  class="mh-panel-close"
+                  aria-label="Lukk chat"
+                >
+                  ✕
+                </button>
               </div>
 
               <div class="mh-open-view">
@@ -824,6 +848,16 @@
           elements.gdpr.addEventListener("change", () =>
             updateSubmitState(elements),
           );
+          elements.panelClose.addEventListener("click", () => {
+  state.isStartingChat = false;
+
+  elements.statusMessage.textContent = "";
+
+  elements.submit.textContent = "Start chat";
+  elements.submit.classList.remove("mh-loading-dots");
+
+  closePreChatPanel(elements);
+});
 
           closeBtn.addEventListener("click", () => {
             const api = window.zissonWebChat;
